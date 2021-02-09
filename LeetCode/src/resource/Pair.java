@@ -7,6 +7,12 @@ public class Pair<T, H> {
     private T first;
     private H second;
 
+    public Pair() {}
+
+    public Pair(T first) {
+        this.first = first;
+    }
+
     public Pair(T first, H second) {
         this.first = first;
         this.second = second;
