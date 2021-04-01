@@ -8,30 +8,39 @@ import java.util.*;
 
 public class TopologicalSort {
 
-    List<GraphNode> ans = new ArrayList<>();
-    Set<GraphNode> visited = new HashSet<>();
-    Stack<GraphNode> sortOrderedStack = new Stack<>();
+    private Stack<GraphNode> topologicalStack;
+    Set<GraphNode> visited;
 
-    public List<GraphNode> topologicalSort(GraphNode root) {
-        dfs(root);
-
-        while (!sortOrderedStack.isEmpty()) {
-            ans.add(sortOrderedStack.pop());
-        }
-
-        return ans;
+    TopologicalSort() {
+        this.topologicalStack = new Stack<>();
+        this.visited = new HashSet<>();
     }
 
-    private void dfs(GraphNode node) {
-        if (visited.contains(node))
-            return;
+    public List<GraphNode> topologicalSort(GraphNode root) {
+        List<GraphNode> sortedGraph = new ArrayList<>();
 
-        visited.add(node);
-
-        for (GraphNode child: node.children) {
-            dfs(child);
+        dfs(root);
+        while (!topologicalStack.isEmpty()) {
+            sortedGraph.add(topologicalStack.pop());
         }
 
-        ans.add(node);
+        return sortedGraph;
+    }
+
+    private void dfs(GraphNode curNode) {
+        if (curNode == null || isVisited(curNode))
+            return;
+
+        visited.add(curNode);
+
+        for (GraphNode kid: curNode.children) {
+            dfs(kid);
+        }
+
+        topologicalStack.add(curNode);
+    }
+
+    private boolean isVisited(GraphNode node) {
+        return visited.contains(node);
     }
 }
