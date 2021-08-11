@@ -1,80 +1,74 @@
 package com.company;
 
-import resource.TreeNode;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
-
+import java.util.Arrays;
 
 public class Solution {
 
-    class MaxStack {
+    private static class CostGraph {
+        int E, V;
+        int cost;
 
-        private class Entry {
-
-            int value;
-            int max;
-
-            Entry (int value, int max ) {
-                this.value = value;
-                this.max = max;
-            }
-        }
-
-        Stack<Entry> stack;
-
-        /** initialize your data structure here. */
-        public MaxStack() {
-            this.stack = new Stack<>();
-        }
-
-        public void push(int x) {
-            if (stack.isEmpty()) {
-                stack.add(new Entry(x, x));
-            } else {
-                Entry topEntry = stack.peek();
-                stack.add(new Entry(x, Math.max(x, topEntry.max)));
-            }
-        }
-
-        public int pop() {
-            return !stack.isEmpty() ? stack.pop().value : -1;
-        }
-
-        public int top() {
-            return !stack.isEmpty() ? stack.peek().value : -1;
-        }
-
-        public int peekMax() {
-            return !stack.isEmpty() ? stack.peek().max : -1;
-        }
-
-        public int popMax() {
-            Stack<Entry> tempEntry = new Stack<>();
-            Entry curEntry = stack.pop();
-            while (curEntry.max != curEntry.value) {
-                tempEntry.push(curEntry);
-                curEntry = stack.pop();
-            }
-
-            int maxElement = curEntry.max;
-
-            while (!tempEntry.isEmpty()) {
-                curEntry = tempEntry.pop();
-                curEntry.max = Math.max(curEntry.value, stack.peek().max);
-                stack.push(curEntry);
-            }
-
-            return maxElement;
+        CostGraph(int E, int V, int cost) {
+            this.E = E;
+            this.V = V;
+            this.cost = cost;
         }
     }
 
-    
+    private static class Subset {
+        int parent, rank;
+    }
 
-    public static void main(String[] args) {
+    private int find(int vertex, Subset[] subsets) {
+        if (subsets[vertex].parent != vertex) {
+            subsets[vertex].parent = find(subsets[vertex].parent, subsets);
+        }
+        return subsets[vertex].parent;
+    }
 
+    private void union(CostGraph graph, Subset[] subsets) {
+        int xRoot = find(graph.E, subsets);
+        int yRoot = find(graph.V, subsets);
 
+        if (subsets[xRoot].rank < subsets[yRoot].rank) {
+            subsets[xRoot].parent = yRoot;
+        } else if (subsets[xRoot].rank > subsets[yRoot].rank) {
+            subsets[yRoot].parent = xRoot;
+        } else {
+            subsets[yRoot].parent = xRoot;
+            subsets[xRoot].rank += 1;
+        }
+    }
 
+    private boolean isCycle(CostGraph graph, Subset[] subsets) {
+        return find(graph.E, subsets) == find(graph.V, subsets);
+    }
 
+    public int minimumCost(int N, int[][] connections) {
+        CostGraph[] graphs = new CostGraph[connections.length];
+
+        int minimumCost = 0;
+
+        for (int i = 0; i < connections.length; i++) {
+            graphs[i] = new CostGraph(connections[i][0], connections[i][1], connections[i][2]);
+        }
+
+        Arrays.sort(graphs, (a, b) -> a.cost - b.cost);
+
+        Subset[] parents = new Subset[N];
+
+        for (int i = 1; i <= N; i++) {
+            parents[i] = new Subset();
+            parents[i].parent = i;
+            parents[i].rank = 1;
+        }
+
+        for (CostGraph graph : graphs) {
+            if (!isCycle(graph, parents)) {
+                union(graph, parents);
+                minimumCost += graph.cost;
+            }
+        }
+        return minimumCost;
     }
 }
